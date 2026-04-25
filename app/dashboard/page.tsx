@@ -555,14 +555,14 @@ export default function Dashboard() {
   }
 
   if(loading) return (
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',background:'#f8fafc',gap:16}}>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'calc(100vh - 52px)',background:'#f8fafc',gap:16}}>
       <Image src="/zuko-logo.png" alt="Zuko" width={120} height={120} style={{objectFit:'contain'}}/>
       <div style={{fontSize:13,color:'#94a3b8',letterSpacing:1,fontWeight:500}}>Cargando...</div>
     </div>
   )
 
   return (
-    <div style={{height:'100vh',display:'flex',background:'#f8fafc',overflow:'hidden'}}>
+    <div style={{height:'calc(100vh - 52px)',display:'flex',background:'#f8fafc',overflow:'hidden'}}>
 
       {showAddTask   && <AddTaskModal   onClose={()=>setShowAddTask(false)}   onSave={handleAddTask}/>}
       {showAddPerson && <AddPersonModal onClose={()=>setShowAddPerson(false)} onSave={handleAddPerson}/>}

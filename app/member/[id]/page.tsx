@@ -324,39 +324,13 @@ export default function MemberView() {
     <div style={{ minHeight:'100vh', background:'#f8fafc', fontFamily:'system-ui, sans-serif' }}>
 
       {/* Header */}
-      <div style={{ background:'#fff', borderBottom:'1px solid #e2e8f0', padding:'14px 24px', display:'flex', alignItems:'center', justifyContent:'space-between', boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <Image src="/zuko-logo.png" alt="ZUKO" width={80} height={32} style={{ objectFit:'contain' }}/>
-          <div style={{ width:1, height:28, background:'#e2e8f0' }}/>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:36, height:36, borderRadius:'50%', background:profile.bg, color:profile.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, border:`2px solid ${profile.color}30` }}>
-              {profile.initials}
-            </div>
-            <div>
-              <div style={{ fontSize:14, fontWeight:700, color:'#0f172a' }}>{profile.name}</div>
-              <div style={{ fontSize:11, color:'#94a3b8' }}>Vista personal</div>
-            </div>
-          </div>
+      <div style={{ background:'#fff', borderBottom:'1px solid #e2e8f0', padding:'12px 24px', display:'flex', alignItems:'center', gap:12, boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ width:36, height:36, borderRadius:'50%', background:profile.bg, color:profile.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, border:`2px solid ${profile.color}30` }}>
+          {profile.initials}
         </div>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          <button
-            onClick={() => router.push('/dashboard')}
-            title="La Pecera — Tablero general"
-            style={{ width:38, height:38, borderRadius:10, border:'1.5px solid #e2e8f0', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, transition:'all .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor='#22c55e'; e.currentTarget.style.background='#f0fdf4' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff' }}
-          >
-            🏠
-          </button>
-          <button
-            onClick={() => router.push('/member')}
-            title="Cambiar usuario"
-            style={{ width:38, height:38, borderRadius:10, border:'1.5px solid #e2e8f0', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, transition:'all .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor='#3b82f6'; e.currentTarget.style.background='#eff6ff' }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff' }}
-          >
-            👤
-          </button>
+        <div>
+          <div style={{ fontSize:14, fontWeight:700, color:'#0f172a' }}>{profile.name}</div>
+          <div style={{ fontSize:11, color:'#94a3b8' }}>Vista personal</div>
         </div>
       </div>
 
