@@ -166,8 +166,17 @@ function TaskPanel({ task, profile, color }: { task: Task; profile: Profile & { 
             </div>
           )}
           {task.status === 'listo' && (
-            <div style={{ background:'#dcfce7', border:'1px solid #bbf7d0', borderRadius:10, padding:'10px 14px', marginBottom:16, fontSize:13, color:'#15803d', fontWeight:600 }}>
-              ✅ Tarea completada
+            <div style={{ display:'flex', alignItems:'center', gap:10, background:'#dcfce7', border:'1px solid #bbf7d0', borderRadius:10, padding:'10px 14px', marginBottom:16 }}>
+              <span style={{ fontSize:13, color:'#15803d', fontWeight:600, flex:1 }}>✅ Tarea completada</span>
+              <button
+                onClick={async () => {
+                  await supabase.from('tasks').update({ status:'pendiente', completed_at: null }).eq('id', task.id)
+                  window.location.reload()
+                }}
+                style={{ fontSize:11, color:'#dc2626', background:'#fee2e2', border:'1px solid #fecaca', borderRadius:7, padding:'4px 10px', cursor:'pointer', fontWeight:600, whiteSpace:'nowrap' }}
+              >
+                ↩ Deshacer
+              </button>
             </div>
           )}
 
