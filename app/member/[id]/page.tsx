@@ -338,9 +338,26 @@ export default function MemberView() {
             </div>
           </div>
         </div>
-        <button onClick={() => router.push('/member')} className="btn-ghost" style={{ fontSize:12, padding:'7px 14px' }}>
-          ← Cambiar usuario
-        </button>
+        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+          <button
+            onClick={() => router.push('/dashboard')}
+            title="La Pecera — Tablero general"
+            style={{ width:38, height:38, borderRadius:10, border:'1.5px solid #e2e8f0', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, transition:'all .15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor='#22c55e'; e.currentTarget.style.background='#f0fdf4' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff' }}
+          >
+            🏠
+          </button>
+          <button
+            onClick={() => router.push('/member')}
+            title="Cambiar usuario"
+            style={{ width:38, height:38, borderRadius:10, border:'1.5px solid #e2e8f0', background:'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, transition:'all .15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor='#3b82f6'; e.currentTarget.style.background='#eff6ff' }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor='#e2e8f0'; e.currentTarget.style.background='#fff' }}
+          >
+            👤
+          </button>
+        </div>
       </div>
 
       <div style={{ maxWidth:680, margin:'0 auto', padding:'24px 16px' }}>
