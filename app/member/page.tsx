@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase'
+import { createClient, type Profile } from '@/lib/supabase'
 
 const COLORS = [
   { color:'#7c3aed', bg:'#ede9fe' },
@@ -15,9 +15,11 @@ const COLORS = [
   { color:'#65a30d', bg:'#ecfccb' },
 ]
 
+type TeamMember = Profile & { color: string; bg: string }
+
 export default function MemberSelect() {
   const router = useRouter()
-  const [team, setTeam] = useState([])
+  const [team, setTeam] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
