@@ -8,6 +8,7 @@ import { createClient, type Task, type Profile } from '@/lib/supabase'
 import CrocMascot, { type CrocMood } from '@/components/CrocMascot'
 import TaskCard from '@/components/TaskCard'
 import LoadChart from '@/components/LoadChart'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const TEAM_COLORS = [
   { color:'#7c3aed', bg:'#ede9fe' },
@@ -440,13 +441,14 @@ export default function Dashboard() {
   const [search,setSearch]                 = useState('')
   const [mood,setMood]                     = useState<CrocMood>('idle')
   const [speech,setSpeech]                 = useState(rnd(MSGS.idle))
-  const [activeTab,setActiveTab]           = useState<'team'|'chart'|'timeline'>('team')
+  const [activeTab,setActiveTab]           = useState<'pool'|'team'|'chart'|'timeline'>('team')
   const [showAddTask,setShowAddTask]       = useState(false)
   const [showAddPerson,setShowAddPerson]   = useState(false)
 
   const pendingTaskIds   = useRef(new Set<string>())
   const pendingPersonIds = useRef(new Set<string>())
   const supabase = createClient()
+  const isMobile = useIsMobile()
   const sensors  = useSensors(useSensor(PointerSensor,{activationConstraint:{distance:5}}))
   const {currentWeek,totalWeeks,monthName,startOfWeek,endOfWeek} = getWeekInfo()
 
@@ -562,149 +564,259 @@ export default function Dashboard() {
   )
 
   return (
-    <div style={{height:'calc(100vh - 52px)',display:'flex',background:'#f8fafc',overflow:'hidden'}}>
+    <div style={{
+      height: isMobile ? undefined : 'calc(100vh - 52px)',
+      minHeight: isMobile ? 'calc(100vh - 52px)' : undefined,
+      display:'flex', background:'#f8fafc',
+      overflow: isMobile ? 'auto' : 'hidden',
+    }}>
 
       {showAddTask   && <AddTaskModal   onClose={()=>setShowAddTask(false)}   onSave={handleAddTask}/>}
       {showAddPerson && <AddPersonModal onClose={()=>setShowAddPerson(false)} onSave={handleAddPerson}/>}
 
-      {/* Sidebar */}
-      <div style={{width:220,background:'#fff',borderRight:'1px solid #e2e8f0',display:'flex',flexDirection:'column',flexShrink:0,boxShadow:'1px 0 4px rgba(0,0,0,0.04)'}}>
-        {/* Logo */}
-        <div style={{padding:'20px 16px 12px',borderBottom:'1px solid #f1f5f9'}}>
-          <Image src="/zuko-logo.png" alt="Zuko" width={130} height={52} style={{objectFit:'contain',cursor:'pointer'}} onClick={()=>showMsg('click','happy')}/>
-        </div>
-        {/* Semana */}
-        <div style={{padding:'12px 16px',borderBottom:'1px solid #f1f5f9',background:'#f0fdf4'}}>
-          <div style={{fontSize:11,color:'#16a34a',fontWeight:700,letterSpacing:0.3}}>SEMANA {currentWeek} DE {totalWeeks}</div>
-          <div style={{fontSize:11,color:'#86efac',marginTop:1}}>{monthName}</div>
-        </div>
-        {/* Stats */}
-        <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8,borderBottom:'1px solid #f1f5f9'}}>
-          {[
-            {icon:'⏱', val:`${totalHrs}h`, lbl:'Horas activas', color:'#7c3aed'},
-            {icon:'📋', val:assignedCount, lbl:'Tareas asignadas', color:'#2563eb'},
-            {icon:'✅', val:doneThisWeek.length, lbl:'Completadas semana', color:'#16a34a'},
-            {icon:'👑', val:busiest.name, lbl:'Mayor carga', color:'#d97706'},
-          ].map(({icon,val,lbl,color})=>(
-            <div key={lbl} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'#f8fafc',borderRadius:10}}>
-              <span style={{fontSize:16}}>{icon}</span>
-              <div>
-                <div style={{fontSize:14,fontWeight:700,color,lineHeight:1}}>{val}</div>
-                <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{lbl}</div>
+      {/* Sidebar — solo desktop */}
+      {!isMobile && (
+        <div style={{width:220,background:'#fff',borderRight:'1px solid #e2e8f0',display:'flex',flexDirection:'column',flexShrink:0,boxShadow:'1px 0 4px rgba(0,0,0,0.04)'}}>
+          <div style={{padding:'20px 16px 12px',borderBottom:'1px solid #f1f5f9'}}>
+            <Image src="/zuko-logo.png" alt="Zuko" width={130} height={52} style={{objectFit:'contain',cursor:'pointer'}} onClick={()=>showMsg('click','happy')}/>
+          </div>
+          <div style={{padding:'12px 16px',borderBottom:'1px solid #f1f5f9',background:'#f0fdf4'}}>
+            <div style={{fontSize:11,color:'#16a34a',fontWeight:700,letterSpacing:0.3}}>SEMANA {currentWeek} DE {totalWeeks}</div>
+            <div style={{fontSize:11,color:'#86efac',marginTop:1}}>{monthName}</div>
+          </div>
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8,borderBottom:'1px solid #f1f5f9'}}>
+            {[
+              {icon:'⏱', val:`${totalHrs}h`, lbl:'Horas activas', color:'#7c3aed'},
+              {icon:'📋', val:assignedCount, lbl:'Tareas asignadas', color:'#2563eb'},
+              {icon:'✅', val:doneThisWeek.length, lbl:'Completadas semana', color:'#16a34a'},
+              {icon:'👑', val:busiest.name, lbl:'Mayor carga', color:'#d97706'},
+            ].map(({icon,val,lbl,color})=>(
+              <div key={lbl} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'#f8fafc',borderRadius:10}}>
+                <span style={{fontSize:16}}>{icon}</span>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color,lineHeight:1}}>{val}</div>
+                  <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{lbl}</div>
+                </div>
               </div>
+            ))}
+          </div>
+          <div style={{padding:'12px 16px',flex:1}}>
+            <div style={{fontSize:11,color:'#64748b',fontStyle:'italic',lineHeight:1.5,background:'#f0fdf4',borderRadius:10,padding:'10px 12px',border:'1px solid #dcfce7'}}>
+              {speech}
             </div>
-          ))}
-        </div>
-        {/* Zuko speech */}
-        <div style={{padding:'12px 16px',flex:1}}>
-          <div style={{fontSize:11,color:'#64748b',fontStyle:'italic',lineHeight:1.5,background:'#f0fdf4',borderRadius:10,padding:'10px 12px',border:'1px solid #dcfce7'}}>
-            {speech}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Main */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* Header */}
-        <div style={{background:'#fff',borderBottom:'1px solid #e2e8f0',padding:'14px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0,boxShadow:'0 1px 3px rgba(0,0,0,0.05)'}}>
-          <div style={{fontSize:18,fontWeight:700,color:'#0f172a'}}>Tablero de tareas</div>
-          <div style={{display:'flex',gap:10,alignItems:'center'}}>
-            <div style={{position:'relative'}}>
-              <input placeholder="Buscar tarea..." value={search} onChange={e=>setSearch(e.target.value.toLowerCase())}
-                style={{width:220,paddingLeft:36,fontSize:13,padding:'8px 14px 8px 36px',borderRadius:10}}/>
-              <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',fontSize:14,color:'#94a3b8'}}>🔍</span>
+        <div style={{
+          background:'#fff', borderBottom:'1px solid #e2e8f0',
+          padding: isMobile ? '10px 12px' : '14px 24px',
+          display:'flex', flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'stretch' : 'center',
+          justifyContent:'space-between', flexShrink:0,
+          boxShadow:'0 1px 3px rgba(0,0,0,0.05)',
+          gap: isMobile ? 8 : 0,
+        }}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}}>
+            <div style={{fontSize: isMobile ? 15 : 18, fontWeight:700, color:'#0f172a'}}>
+              {isMobile ? '🐊 Zuko Tasks' : 'Tablero de tareas'}
             </div>
-            <button className="btn-ghost" onClick={()=>setShowAddPerson(true)} style={{whiteSpace:'nowrap',padding:'9px 16px',fontSize:13}}>+ Persona</button>
-            <button className="btn-primary" onClick={()=>setShowAddTask(true)} style={{whiteSpace:'nowrap',padding:'9px 20px',fontSize:13,width:'auto'}}>+ Nueva tarea</button>
+            <div style={{display:'flex',gap:6,alignItems:'center'}}>
+              <button className="btn-ghost" onClick={()=>setShowAddPerson(true)}
+                style={{whiteSpace:'nowrap',padding: isMobile ? '8px 10px' : '9px 16px',fontSize:13}}>
+                + Persona
+              </button>
+              <button className="btn-primary" onClick={()=>setShowAddTask(true)}
+                style={{whiteSpace:'nowrap',padding: isMobile ? '8px 12px' : '9px 20px',fontSize:13,width:'auto'}}>
+                {isMobile ? '+ Tarea' : '+ Nueva tarea'}
+              </button>
+            </div>
+          </div>
+          <div style={{position:'relative'}}>
+            <input placeholder="Buscar tarea..." value={search} onChange={e=>setSearch(e.target.value.toLowerCase())}
+              style={{width: isMobile ? '100%' : 220, fontSize:13, padding:'8px 14px 8px 36px', borderRadius:10}}/>
+            <span style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',fontSize:14,color:'#94a3b8'}}>🔍</span>
           </div>
         </div>
 
         {/* Board */}
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <div style={{display:'grid',gridTemplateColumns:'260px 1fr',flex:1,overflow:'hidden'}}>
-
-            {/* Pool column */}
-            <div style={{borderRight:'1px solid #e2e8f0',display:'flex',flexDirection:'column',overflow:'hidden',background:'#f8fafc'}}>
-              <div style={{padding:'16px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-                <span style={{fontSize:13,fontWeight:700,color:'#334155'}}>Sin asignar</span>
-                <span style={{background:'#e2e8f0',color:'#64748b',fontSize:12,fontWeight:700,padding:'2px 10px',borderRadius:20}}>{poolTasks.length}</span>
-              </div>
-              <DroppablePool tasks={poolTasks} search={search} onDelete={handleDeleteTask}/>
-              <DroppableDone tasks={doneTasks} weekStart={startOfWeek} weekEnd={endOfWeek} onRestore={handleRestoreDone}/>
-            </div>
-
-            {/* Panel derecho */}
-            <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
-              {/* Tabs */}
-              <div style={{display:'flex',borderBottom:'1px solid #e2e8f0',background:'#fff',padding:'0 20px',flexShrink:0}}>
-                {(['team','chart','timeline'] as const).map(tab=>(
+          {isMobile ? (
+            /* ── MÓVIL: 4 tabs en columna única ── */
+            <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
+              {/* Tabs móvil */}
+              <div style={{display:'flex',background:'#fff',borderBottom:'1px solid #e2e8f0',overflowX:'auto',flexShrink:0}}>
+                {(['pool','team','chart','timeline'] as const).map(tab=>(
                   <button key={tab} onClick={()=>setActiveTab(tab)} style={{
-                    padding:'14px 16px', fontSize:13, fontWeight:600,
-                    color:activeTab===tab?'#16a34a':'#94a3b8',
+                    padding:'12px 14px', fontSize:12, fontWeight:600, whiteSpace:'nowrap',
+                    color: activeTab===tab ? '#16a34a' : '#94a3b8',
                     background:'none', border:'none',
-                    borderBottom:activeTab===tab?'2.5px solid #22c55e':'2.5px solid transparent',
-                    cursor:'pointer', transition:'color .15s', fontFamily:'inherit',
+                    borderBottom: activeTab===tab ? '2.5px solid #22c55e' : '2.5px solid transparent',
+                    cursor:'pointer', fontFamily:'inherit', WebkitTapHighlightColor:'transparent',
                   }}>
-                    {tab==='team'?'👥 Equipo':tab==='chart'?'📊 Carga':'📅 Timeline'}
+                    {tab==='pool'
+                      ? `📋 Pool${poolTasks.length ? ` (${poolTasks.length})` : ''}`
+                      : tab==='team' ? '👥 Equipo'
+                      : tab==='chart' ? '📊 Carga'
+                      : '📅 Timeline'}
                   </button>
                 ))}
               </div>
 
-              {/* Tab Equipo */}
-              {activeTab==='team' && (
-                <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
-                  {team.length===0 ? (
-                    <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'60px 20px',gap:12,color:'#94a3b8',textAlign:'center'}}>
-                      <CrocMascot mood="sleep" size={70}/>
-                      <div style={{fontSize:14,fontWeight:600,color:'#64748b'}}>No hay personas aún</div>
-                      <div style={{fontSize:13}}>Haz clic en <b style={{color:'#22c55e'}}>+ Persona</b> para agregar al equipo</div>
-                    </div>
-                  ) : team.map(p=>(
-                    <PersonCard key={p.id} person={p} tasks={tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo')} onUnassign={unassign}/>
-                  ))}
-                </div>
-              )}
+              {/* Contenido móvil */}
+              <div style={{flex:1,overflowY:'auto'}}>
 
-              {/* Tab Carga */}
-              {activeTab==='chart' && (
-                <div style={{flex:1,overflowY:'auto',padding:'20px 24px',display:'flex',flexDirection:'column',gap:16}}>
-                  <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:16,padding:'20px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-                    <div style={{fontSize:13,fontWeight:700,color:'#334155',marginBottom:14}}>Horas asignadas por persona</div>
-                    <LoadChart team={team} tasks={tasks.filter(t=>t.status!=='listo')}/>
-                  </div>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-                    {[
-                      {val:totalHrs,lbl:'Horas activas',icon:'⏱',color:'#7c3aed',bg:'#ede9fe'},
-                      {val:assignedCount,lbl:'Tareas asignadas',icon:'📋',color:'#2563eb',bg:'#dbeafe'},
-                      {val:doneThisWeek.length,lbl:'Completadas semana',icon:'✅',color:'#16a34a',bg:'#dcfce7'},
-                    ].map(({val,lbl,icon,color,bg})=>(
-                      <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:14,padding:'16px 18px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)',display:'flex',gap:12,alignItems:'center'}}>
-                        <div style={{width:40,height:40,borderRadius:10,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{icon}</div>
-                        <div>
-                          <div style={{fontSize:22,fontWeight:700,color,lineHeight:1}}>{val}</div>
-                          <div style={{fontSize:11,color:'#94a3b8',marginTop:3}}>{lbl}</div>
-                        </div>
+                {activeTab==='pool' && (
+                  <>
+                    <div style={{padding:'12px 12px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f8fafc'}}>
+                      <span style={{fontSize:13,fontWeight:700,color:'#334155'}}>Sin asignar</span>
+                      <span style={{background:'#e2e8f0',color:'#64748b',fontSize:12,fontWeight:700,padding:'2px 10px',borderRadius:20}}>{poolTasks.length}</span>
+                    </div>
+                    <DroppablePool tasks={poolTasks} search={search} onDelete={handleDeleteTask}/>
+                    <DroppableDone tasks={doneTasks} weekStart={startOfWeek} weekEnd={endOfWeek} onRestore={handleRestoreDone}/>
+                  </>
+                )}
+
+                {activeTab==='team' && (
+                  <div style={{padding:'12px'}}>
+                    {team.length===0 ? (
+                      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'40px 20px',gap:12,color:'#94a3b8',textAlign:'center'}}>
+                        <CrocMascot mood="sleep" size={60}/>
+                        <div style={{fontSize:13,fontWeight:600,color:'#64748b'}}>No hay personas aún</div>
+                        <div style={{fontSize:12}}>Toca <b style={{color:'#22c55e'}}>+ Persona</b> para agregar</div>
                       </div>
+                    ) : team.map(p=>(
+                      <PersonCard key={p.id} person={p} tasks={tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo')} onUnassign={unassign}/>
                     ))}
                   </div>
-                  {doneThisWeek.length>0 && (
-                    <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'14px 16px'}}>
-                      <div style={{fontSize:13,fontWeight:600,color:'#15803d',marginBottom:6}}>✅ Esta semana: {doneThisWeek.reduce((s,t)=>s+t.estimated_hrs,0)}h completadas</div>
-                      <div style={{fontSize:12,color:'#86efac'}}>{doneThisWeek.map(t=>t.name).join(' · ')}</div>
-                    </div>
-                  )}
-                  {team.some(p=>tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo').reduce((s,t)=>s+t.estimated_hrs,0)>20) && (
-                    <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#dc2626'}}>
-                      ⚠️ Zuko detecta sobrecarga — redistribuye horas entre el equipo.
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
 
-              {activeTab==='timeline' && <Timeline tasks={tasks} team={team}/>}
+                {activeTab==='chart' && (
+                  <div style={{padding:'14px 12px',display:'flex',flexDirection:'column',gap:12}}>
+                    <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:14,padding:'14px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'#334155',marginBottom:12}}>Horas por persona</div>
+                      <LoadChart team={team} tasks={tasks.filter(t=>t.status!=='listo')}/>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+                      {[
+                        {val:totalHrs,lbl:'Horas activas',icon:'⏱',color:'#7c3aed',bg:'#ede9fe'},
+                        {val:assignedCount,lbl:'Asignadas',icon:'📋',color:'#2563eb',bg:'#dbeafe'},
+                        {val:doneThisWeek.length,lbl:'Completadas',icon:'✅',color:'#16a34a',bg:'#dcfce7'},
+                        {val:busiest.name,lbl:'Mayor carga',icon:'👑',color:'#d97706',bg:'#fef3c7'},
+                      ].map(({val,lbl,icon,color,bg})=>(
+                        <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:12,padding:'10px',display:'flex',gap:8,alignItems:'center'}}>
+                          <div style={{width:30,height:30,borderRadius:8,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>{icon}</div>
+                          <div>
+                            <div style={{fontSize:16,fontWeight:700,color,lineHeight:1}}>{val}</div>
+                            <div style={{fontSize:10,color:'#94a3b8',marginTop:1}}>{lbl}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {doneThisWeek.length>0 && (
+                      <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'10px 14px'}}>
+                        <div style={{fontSize:12,fontWeight:600,color:'#15803d',marginBottom:3}}>✅ Esta semana: {doneThisWeek.reduce((s,t)=>s+t.estimated_hrs,0)}h</div>
+                        <div style={{fontSize:11,color:'#86efac'}}>{doneThisWeek.map(t=>t.name).join(' · ')}</div>
+                      </div>
+                    )}
+                    {team.some(p=>tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo').reduce((s,t)=>s+t.estimated_hrs,0)>20) && (
+                      <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:12,padding:'10px 12px',fontSize:12,color:'#dc2626'}}>
+                        ⚠️ Zuko detecta sobrecarga — redistribuye horas.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab==='timeline' && <Timeline tasks={tasks} team={team}/>}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* ── DESKTOP: grid original ── */
+            <div style={{display:'grid',gridTemplateColumns:'260px 1fr',flex:1,overflow:'hidden'}}>
+
+              {/* Pool column */}
+              <div style={{borderRight:'1px solid #e2e8f0',display:'flex',flexDirection:'column',overflow:'hidden',background:'#f8fafc'}}>
+                <div style={{padding:'16px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+                  <span style={{fontSize:13,fontWeight:700,color:'#334155'}}>Sin asignar</span>
+                  <span style={{background:'#e2e8f0',color:'#64748b',fontSize:12,fontWeight:700,padding:'2px 10px',borderRadius:20}}>{poolTasks.length}</span>
+                </div>
+                <DroppablePool tasks={poolTasks} search={search} onDelete={handleDeleteTask}/>
+                <DroppableDone tasks={doneTasks} weekStart={startOfWeek} weekEnd={endOfWeek} onRestore={handleRestoreDone}/>
+              </div>
+
+              {/* Panel derecho */}
+              <div style={{display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                <div style={{display:'flex',borderBottom:'1px solid #e2e8f0',background:'#fff',padding:'0 20px',flexShrink:0}}>
+                  {(['team','chart','timeline'] as const).map(tab=>(
+                    <button key={tab} onClick={()=>setActiveTab(tab)} style={{
+                      padding:'14px 16px', fontSize:13, fontWeight:600,
+                      color:activeTab===tab?'#16a34a':'#94a3b8',
+                      background:'none', border:'none',
+                      borderBottom:activeTab===tab?'2.5px solid #22c55e':'2.5px solid transparent',
+                      cursor:'pointer', transition:'color .15s', fontFamily:'inherit',
+                    }}>
+                      {tab==='team'?'👥 Equipo':tab==='chart'?'📊 Carga':'📅 Timeline'}
+                    </button>
+                  ))}
+                </div>
+
+                {activeTab==='team' && (
+                  <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
+                    {team.length===0 ? (
+                      <div style={{display:'flex',flexDirection:'column',alignItems:'center',padding:'60px 20px',gap:12,color:'#94a3b8',textAlign:'center'}}>
+                        <CrocMascot mood="sleep" size={70}/>
+                        <div style={{fontSize:14,fontWeight:600,color:'#64748b'}}>No hay personas aún</div>
+                        <div style={{fontSize:13}}>Haz clic en <b style={{color:'#22c55e'}}>+ Persona</b> para agregar al equipo</div>
+                      </div>
+                    ) : team.map(p=>(
+                      <PersonCard key={p.id} person={p} tasks={tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo')} onUnassign={unassign}/>
+                    ))}
+                  </div>
+                )}
+
+                {activeTab==='chart' && (
+                  <div style={{flex:1,overflowY:'auto',padding:'20px 24px',display:'flex',flexDirection:'column',gap:16}}>
+                    <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:16,padding:'20px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:'#334155',marginBottom:14}}>Horas asignadas por persona</div>
+                      <LoadChart team={team} tasks={tasks.filter(t=>t.status!=='listo')}/>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                      {[
+                        {val:totalHrs,lbl:'Horas activas',icon:'⏱',color:'#7c3aed',bg:'#ede9fe'},
+                        {val:assignedCount,lbl:'Tareas asignadas',icon:'📋',color:'#2563eb',bg:'#dbeafe'},
+                        {val:doneThisWeek.length,lbl:'Completadas semana',icon:'✅',color:'#16a34a',bg:'#dcfce7'},
+                      ].map(({val,lbl,icon,color,bg})=>(
+                        <div key={lbl} style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:14,padding:'16px 18px',boxShadow:'0 1px 3px rgba(0,0,0,0.06)',display:'flex',gap:12,alignItems:'center'}}>
+                          <div style={{width:40,height:40,borderRadius:10,background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>{icon}</div>
+                          <div>
+                            <div style={{fontSize:22,fontWeight:700,color,lineHeight:1}}>{val}</div>
+                            <div style={{fontSize:11,color:'#94a3b8',marginTop:3}}>{lbl}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {doneThisWeek.length>0 && (
+                      <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'14px 16px'}}>
+                        <div style={{fontSize:13,fontWeight:600,color:'#15803d',marginBottom:6}}>✅ Esta semana: {doneThisWeek.reduce((s,t)=>s+t.estimated_hrs,0)}h completadas</div>
+                        <div style={{fontSize:12,color:'#86efac'}}>{doneThisWeek.map(t=>t.name).join(' · ')}</div>
+                      </div>
+                    )}
+                    {team.some(p=>tasks.filter(t=>t.assigned_to===p.id&&t.status!=='listo').reduce((s,t)=>s+t.estimated_hrs,0)>20) && (
+                      <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#dc2626'}}>
+                        ⚠️ Zuko detecta sobrecarga — redistribuye horas entre el equipo.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {activeTab==='timeline' && <Timeline tasks={tasks} team={team}/>}
+              </div>
+            </div>
+          )}
           <DragOverlay>{activeTask?<TaskCard task={activeTask} disabled/>:null}</DragOverlay>
         </DndContext>
       </div>

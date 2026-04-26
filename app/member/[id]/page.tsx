@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { createClient, type Task, type Profile } from '@/lib/supabase'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const TEAM_COLORS = [
   { color:'#7c3aed', bg:'#ede9fe' },
@@ -275,8 +276,9 @@ function TaskPanel({ task, profile, color }: { task: Task; profile: Profile & { 
 
 export default function MemberView() {
   const { id } = useParams<{ id: string }>()
-  const router  = useRouter()
+  const router   = useRouter()
   const supabase = createClient()
+  const isMobile = useIsMobile()
 
   const [profile, setProfile] = useState<(Profile & { color:string; bg:string }) | null>(null)
   const [tasks, setTasks]     = useState<Task[]>([])
@@ -321,11 +323,11 @@ export default function MemberView() {
   )
 
   return (
-    <div style={{ minHeight:'100vh', background:'#f8fafc', fontFamily:'system-ui, sans-serif' }}>
+    <div style={{ minHeight:'calc(100vh - 52px)', background:'#f8fafc', fontFamily:'system-ui, sans-serif' }}>
 
       {/* Header */}
-      <div style={{ background:'#fff', borderBottom:'1px solid #e2e8f0', padding:'12px 24px', display:'flex', alignItems:'center', gap:12, boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ width:36, height:36, borderRadius:'50%', background:profile.bg, color:profile.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, border:`2px solid ${profile.color}30` }}>
+      <div style={{ background:'#fff', borderBottom:'1px solid #e2e8f0', padding: isMobile ? '10px 14px' : '12px 24px', display:'flex', alignItems:'center', gap:10, boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ width:36, height:36, borderRadius:'50%', background:profile.bg, color:profile.color, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, border:`2px solid ${profile.color}30`, flexShrink:0 }}>
           {profile.initials}
         </div>
         <div>
@@ -334,25 +336,25 @@ export default function MemberView() {
         </div>
       </div>
 
-      <div style={{ maxWidth:680, margin:'0 auto', padding:'24px 16px' }}>
+      <div style={{ maxWidth:680, margin:'0 auto', padding: isMobile ? '16px 12px' : '24px 16px' }}>
 
-        {/* Stats */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:10, marginBottom:24 }}>
+        {/* Stats 2×2 en móvil, 4 columnas en desktop */}
+        <div style={{ display:'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: isMobile ? 8 : 10, marginBottom: isMobile ? 14 : 24 }}>
           {[
             { val: tasks.length,  lbl:'Total',       color: profile.color, bg: profile.bg },
             { val: pendCount,     lbl:'Pendientes',  color:'#f59e0b',      bg:'#fef3c7' },
             { val: progCount,     lbl:'En progreso', color:'#3b82f6',      bg:'#dbeafe' },
             { val: doneCount,     lbl:'Completadas', color:'#22c55e',      bg:'#dcfce7' },
           ].map(({ val, lbl, color, bg }) => (
-            <div key={lbl} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding:'12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize:22, fontWeight:700, color }}>{val}</div>
+            <div key={lbl} style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding: isMobile ? '10px 12px' : '12px 14px', boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div style={{ fontSize: isMobile ? 20 : 22, fontWeight:700, color }}>{val}</div>
               <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>{lbl}</div>
             </div>
           ))}
         </div>
 
         {/* Horas activas */}
-        <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding:'12px 16px', marginBottom:20, display:'flex', alignItems:'center', gap:10, boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ background:'#fff', border:'1px solid #e2e8f0', borderRadius:12, padding: isMobile ? '10px 14px' : '12px 16px', marginBottom: isMobile ? 14 : 20, display:'flex', alignItems:'center', gap:10, boxShadow:'0 1px 3px rgba(0,0,0,0.05)' }}>
           <span style={{ fontSize:20 }}>⏱</span>
           <div>
             <div style={{ fontSize:15, fontWeight:700, color: profile.color }}>{totalHrs}h</div>
@@ -361,10 +363,14 @@ export default function MemberView() {
         </div>
 
         {/* Filtros */}
-        <div style={{ display:'flex', gap:8, marginBottom:16, flexWrap:'wrap' }}>
+        <div style={{ display:'flex', gap: isMobile ? 6 : 8, marginBottom:14, flexWrap:'wrap' }}>
           {(['todas','pendiente','en progreso','listo'] as const).map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              style={{ padding:'6px 14px', borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer', border:'1.5px solid', transition:'all .15s',
+              style={{
+                padding: isMobile ? '8px 12px' : '6px 14px',
+                minHeight: isMobile ? 36 : undefined,
+                borderRadius:20, fontSize:12, fontWeight:600, cursor:'pointer', border:'1.5px solid',
+                transition:'all .15s', fontFamily:'inherit', WebkitTapHighlightColor:'transparent',
                 background: filter===f ? profile.color : '#fff',
                 color:      filter===f ? '#fff' : '#64748b',
                 borderColor: filter===f ? profile.color : '#e2e8f0',
@@ -376,7 +382,7 @@ export default function MemberView() {
 
         {/* Lista de tareas */}
         {filtered.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'48px 20px', color:'#94a3b8', fontSize:13 }}>
+          <div style={{ textAlign:'center', padding:'40px 20px', color:'#94a3b8', fontSize:13 }}>
             {filter === 'todas' ? 'No tienes tareas asignadas aún.' : `No hay tareas en "${filter}".`}
           </div>
         ) : (

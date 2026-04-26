@@ -1,10 +1,12 @@
 'use client'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 export default function Navbar() {
-  const router = useRouter()
+  const router   = useRouter()
   const pathname = usePathname()
+  const isMobile = useIsMobile()
 
   const active = (path: string) =>
     pathname === path || (path !== '/' && pathname.startsWith(path))
@@ -17,22 +19,24 @@ export default function Navbar() {
       boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       display: 'flex', alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 20px',
+      padding: isMobile ? '0 12px' : '0 20px',
     }}>
       <Image
-        src="/zuko-logo.png" alt="ZUKO" width={90} height={36}
+        src="/zuko-logo.png" alt="ZUKO"
+        width={isMobile ? 72 : 90} height={isMobile ? 29 : 36}
         style={{ objectFit: 'contain', cursor: 'pointer' }}
         onClick={() => router.push('/')}
       />
 
-      <div style={{ display: 'flex', gap: 6 }}>
+      <div style={{ display: 'flex', gap: isMobile ? 6 : 6 }}>
         <button
           onClick={() => router.push('/dashboard')}
           style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '6px 14px', borderRadius: 10, border: '1.5px solid',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'inherit', transition: 'all .15s',
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: isMobile ? '7px 10px' : '6px 14px',
+            borderRadius: 10, border: '1.5px solid',
+            fontSize: isMobile ? 12 : 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
             background: active('/dashboard') ? '#dcfce7' : '#fff',
             borderColor: active('/dashboard') ? '#22c55e' : '#e2e8f0',
             color: active('/dashboard') ? '#16a34a' : '#64748b',
@@ -52,16 +56,17 @@ export default function Navbar() {
             }
           }}
         >
-          🏊 La Pecera
+          🏊{!isMobile && ' La Pecera'}
         </button>
 
         <button
           onClick={() => router.push('/member')}
           style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '6px 14px', borderRadius: 10, border: '1.5px solid',
-            fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            fontFamily: 'inherit', transition: 'all .15s',
+            display: 'flex', alignItems: 'center', gap: 5,
+            padding: isMobile ? '7px 10px' : '6px 14px',
+            borderRadius: 10, border: '1.5px solid',
+            fontSize: isMobile ? 12 : 13, fontWeight: 600,
+            cursor: 'pointer', fontFamily: 'inherit', transition: 'all .15s',
             background: active('/member') ? '#dbeafe' : '#fff',
             borderColor: active('/member') ? '#3b82f6' : '#e2e8f0',
             color: active('/member') ? '#2563eb' : '#64748b',
@@ -81,7 +86,7 @@ export default function Navbar() {
             }
           }}
         >
-          🌊 Mi Laguna
+          🌊{!isMobile && ' Mi Laguna'}
         </button>
       </div>
     </nav>
