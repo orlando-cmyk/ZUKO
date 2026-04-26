@@ -84,7 +84,7 @@ function AddTaskModal({ onClose, onSave }: { onClose:()=>void, onSave:(t:Partial
 
   return (
     <div style={MODAL_OVERLAY} onClick={onClose}>
-      <div style={MODAL_CARD} onClick={e=>e.stopPropagation()}>
+      <div className="modal-card" style={MODAL_CARD} onClick={e=>e.stopPropagation()}>
         <div>
           <div style={{ fontSize:20, fontWeight:700, color:'#0f172a', marginBottom:4 }}>Nueva tarea</div>
           <div style={{ fontSize:13, color:'#94a3b8' }}>Completa los detalles de la tarea</div>
@@ -162,7 +162,7 @@ function AddPersonModal({ onClose, onSave }: { onClose:()=>void, onSave:(p:{name
 
   return (
     <div style={MODAL_OVERLAY} onClick={onClose}>
-      <div style={MODAL_CARD} onClick={e=>e.stopPropagation()}>
+      <div className="modal-card" style={MODAL_CARD} onClick={e=>e.stopPropagation()}>
         <div>
           <div style={{ fontSize:20, fontWeight:700, color:'#0f172a', marginBottom:4 }}>Agregar persona</div>
           <div style={{ fontSize:13, color:'#94a3b8' }}>Nuevo miembro al equipo</div>
@@ -646,29 +646,10 @@ export default function Dashboard() {
         {/* Board */}
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
           {isMobile ? (
-            /* ── MÓVIL: 4 tabs en columna única ── */
+            /* ── MÓVIL: columna única, nav en bottom bar ── */
             <div style={{display:'flex',flexDirection:'column',flex:1,overflow:'hidden'}}>
-              {/* Tabs móvil */}
-              <div style={{display:'flex',background:'#fff',borderBottom:'1px solid #e2e8f0',overflowX:'auto',flexShrink:0}}>
-                {(['pool','team','chart','timeline'] as const).map(tab=>(
-                  <button key={tab} onClick={()=>setActiveTab(tab)} style={{
-                    padding:'12px 14px', fontSize:12, fontWeight:600, whiteSpace:'nowrap',
-                    color: activeTab===tab ? '#16a34a' : '#94a3b8',
-                    background:'none', border:'none',
-                    borderBottom: activeTab===tab ? '2.5px solid #22c55e' : '2.5px solid transparent',
-                    cursor:'pointer', fontFamily:'inherit', WebkitTapHighlightColor:'transparent',
-                  }}>
-                    {tab==='pool'
-                      ? `📋 Pool${poolTasks.length ? ` (${poolTasks.length})` : ''}`
-                      : tab==='team' ? '👥 Equipo'
-                      : tab==='chart' ? '📊 Carga'
-                      : '📅 Timeline'}
-                  </button>
-                ))}
-              </div>
-
-              {/* Contenido móvil */}
-              <div style={{flex:1,overflowY:'auto'}}>
+              {/* Contenido móvil — padding-bottom para el bottom nav */}
+              <div style={{flex:1,overflowY:'auto',paddingBottom:64}}>
 
                 {activeTab==='pool' && (
                   <>
@@ -819,6 +800,42 @@ export default function Dashboard() {
           )}
           <DragOverlay>{activeTask?<TaskCard task={activeTask} disabled/>:null}</DragOverlay>
         </DndContext>
+
+        {/* ── Bottom Nav — móvil ── */}
+        {isMobile && (
+          <div style={{
+            position:'fixed', bottom:0, left:0, right:0, zIndex:40,
+            height:56, background:'#fff',
+            borderTop:'1px solid #e2e8f0',
+            boxShadow:'0 -2px 8px rgba(0,0,0,0.07)',
+            display:'flex',
+          }}>
+            {([
+              { id:'pool',     icon:'📋', label: poolTasks.length ? `Pool (${poolTasks.length})` : 'Pool' },
+              { id:'team',     icon:'👥', label:'Equipo'   },
+              { id:'chart',    icon:'📊', label:'Carga'    },
+              { id:'timeline', icon:'📅', label:'Timeline' },
+            ] as const).map(({ id, icon, label }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                style={{
+                  flex:1, display:'flex', flexDirection:'column',
+                  alignItems:'center', justifyContent:'center', gap:2,
+                  border:'none', borderTop: activeTab===id ? '2px solid #22c55e' : '2px solid transparent',
+                  background:'none', cursor:'pointer', fontFamily:'inherit',
+                  color: activeTab===id ? '#16a34a' : '#94a3b8',
+                  padding:'6px 0',
+                  WebkitTapHighlightColor:'transparent',
+                  transition:'color .15s',
+                }}
+              >
+                <span style={{fontSize:20, lineHeight:1}}>{icon}</span>
+                <span style={{fontSize:10, fontWeight: activeTab===id ? 700 : 500, lineHeight:1.2}}>{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
